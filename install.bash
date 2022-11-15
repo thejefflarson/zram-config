@@ -70,10 +70,7 @@ if [[ "$OS" == "alpine" ]]; then
   rc-service zram-config start
 else
   systemctl daemon-reload
-  systemctl enable --now zram-config.service
-  until [[ $(systemctl show -p SubState --value zram-config) == "exited" ]]; do
-    sleep 5
-  done
+  systemctl enable zram-config.service
 fi
 
 echo "#####     zram-config is now installed and running     #####"
