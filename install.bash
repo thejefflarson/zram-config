@@ -56,7 +56,6 @@ else
   install -m 644 "$BASEDIR"/service/SystemD/zram-config.service /etc/systemd/system/zram-config.service
   echo "ReadWritePaths=/usr/local/share/zram-config/log" >> /lib/systemd/system/logrotate.service
 fi
-install -m 644 "$BASEDIR"/ztab /etc/ztab
 mkdir -p /usr/local/share/zram-config/log
 ln -s /usr/local/share/zram-config/log /var/log/zram-config
 install -m 755 "$BASEDIR"/uninstall.bash /usr/local/share/zram-config/uninstall.bash
