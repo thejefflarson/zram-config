@@ -71,6 +71,3 @@ else
   systemctl daemon-reload
   systemctl enable zram-config.service
 fi
-
-echo "#####     zram-config is now installed and running     #####"
-echo "#####       edit /etc/ztab to configure options        #####"
