@@ -104,7 +104,8 @@ createZdir() {
 	echo "createZdir: dirMountOpt - ${dirMountOpt}; dirFsType: ${dirFSType}" >> "$ZLOG"
 	createZdevice || return 1
 
-	mke2fs -v -t "$dirFSType" "/dev/zram${RAM_DEV}" &>> "$ZLOG" || return 1
+	# shellcheck disable=SC2086
+	[[ -x $(command -v mkfs.$dirFSType) ]] && mkfs.$dirFSType -v "/dev/zram${RAM_DEV}" &>> "$ZLOG" || return 1
 	mkdir -p "${ZDIR}/zram${RAM_DEV}" &>> "$ZLOG" || return 1
 	mount --verbose --types "$dirFSType" -o "$dirMountOpt" "/dev/zram${RAM_DEV}" "${ZDIR}/zram${RAM_DEV}/" &>> "$ZLOG" || return 1
 	mkdir -p "${ZDIR}/zram${RAM_DEV}/upper" "${ZDIR}/zram${RAM_DEV}/workdir" "$TARGET_DIR" &>> "$ZLOG" || return 1
@@ -125,8 +126,7 @@ createZdir() {
 mergeOverlay() {
 	echo "mergeOverlay: Beginning merge of ${ZDIR}${BIND_DIR}." >> "$ZLOG"
 	ls -la "$ZDIR" "${ZDIR}${BIND_DIR}" "${ZDIR}${ZRAM_DEV}/upper" >> "$ZLOG"
-	cd /usr/local/lib/zram-config/ || return 1
-	(./overlay merge --yes --lowerdir="${ZDIR}${BIND_DIR}" --upperdir="${ZDIR}${ZRAM_DEV}/upper") &>> "$ZLOG" || return 1
+	overlay merge --yes --lowerdir="${ZDIR}${BIND_DIR}" --upperdir="${ZDIR}${ZRAM_DEV}/upper" &>> "$ZLOG" || return 1
 	bash -x -- *.sh &>> "$ZLOG"
 	rm -fv -- *.sh &>> "$ZLOG" || return 1
 	echo "mergeOverlay: Merge of ${ZDIR}${BIND_DIR} complete." >> "$ZLOG"

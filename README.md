@@ -13,7 +13,7 @@ A table located at `/etc/ztab` is used to configure any number and type of zram 
 Using the table an OverlayFS mount is used to mount the newly created zram device as the upper filesystem of the OverlayFS.
 OverlayFS is used so that files do not need to be copied from persistent storage to RAM on startup.
 In theory this should allow for faster boots and larger directories as no complete directory copy is needed.
-A modified version of [kmxz/overlayfs-tools](https://github.com/kmxz/overlayfs-tools) is used to implement the OverlayFS sync logic.
+A version of [kmxz/overlayfs-tools](https://github.com/kmxz/overlayfs-tools) is used to implement the OverlayFS sync logic.
 
 This tool is primarily developed and tested against Raspberry Pi OS.
 Any Debian derivative should also work out of the box, however there is no guarantee.
@@ -35,6 +35,7 @@ Experimental Alpine support has also been added, other distributions may work bu
     -   [Conflicts with services](#conflicts-with-services)
     -   [Swapiness on older Linux kernel versions](#swapiness-on-older-linux-kernel-versions)
     -   [Raspberry Pi 4 8GB compatibility](#raspberry-pi-4-8gb-compatibility)
+    -   [Filesystem compatibility](#filesystem-compatibility)
 7.  [Performance](#performance)
 8.  [Reference](#reference)
 
@@ -42,7 +43,7 @@ Experimental Alpine support has also been added, other distributions may work bu
 
 ``` shell
 sudo apt-get install git
-git clone https://github.com/ecdye/zram-config
+git clone --recurse-submodules https://github.com/ecdye/zram-config
 sudo ./zram-config/install.bash
 ```
 
@@ -69,6 +70,12 @@ Note that this sync service is not installed by default, you must install it sep
 
 ``` shell
 sudo /path/to/zram-config/update.bash
+```
+
+To make changes to the code or checkout a specific branch/tag and prevent it from updating/resetting all changes run the following instead.
+
+``` shell
+sudo /path/to/zram-config/update.bash custom
 ```
 
 ### Uninstall
@@ -187,6 +194,13 @@ The Raspberry Pi 4 8GB model can exhibit issues with zram due to a Linux kernel 
 This bug has been fixed as of Raspberry Pi Kernel version 1.20210527.
 See [raspberrypi/linux@cef3970381](https://github.com/raspberrypi/linux/commit/cef397038167ac15d085914493d6c86385773709) for more details about the issue.
 
+#### Filesystem compatibility
+
+By default zram-config should support most regular filesystems, as long as the tools are installed and available on the host system.
+In some cases, with niche filesystems some manual editing of the code may be required to enable support.
+
+Pull requests adding support for filesystems that don't work automatically are welcome.
+
 ### Performance
 
 LZO-RLE offers the best performance and is probably the best choice, and from kernel 5.1 and onward it is the default.
@@ -195,18 +209,7 @@ You might have text based low impact directories such as `/var/log` or `/var/cac
 With `/tmp` and `/run`, zram is unnecessary because they are RAM mounted as `tmpfs` and, if memory gets short, then the zram swap will provide extra.
 It is only under intense loads that the slight overhead of zram compression becomes noticeable.
 
-This chart from [facebook/zstd](https://github.com/facebook/zstd) provides a good benchmark for the performance of the different compressors.
-
-| Compressor name  | Ratio | Compression | Decompression |
-|:-----------------|------:|------------:|--------------:|
-| zstd 1.5.1 -1    | 2.887 |    530 MB/s |     1700 MB/s |
-| zlib 1.2.11 -1   | 2.743 |     95 MB/s |      400 MB/s |
-| brotli 1.0.9 -0  | 2.702 |    395 MB/s |      450 MB/s |
-| quicklz 1.5.0 -1 | 2.238 |    540 MB/s |      760 MB/s |
-| lzo1x 2.10 -1    | 2.106 |    660 MB/s |      845 MB/s |
-| lz4 1.9.3        | 2.101 |    740 MB/s |     4500 MB/s |
-| lzf 3.6 -1       | 2.077 |    410 MB/s |      830 MB/s |
-| snappy 1.1.9     | 2.073 |    550 MB/s |     1750 MB/s |
+This chart in [facebook/zstd](https://github.com/facebook/zstd?tab=readme-ov-file#benchmarks) provides a good reference for the performance of the different compressors.
 
 ### Reference
 

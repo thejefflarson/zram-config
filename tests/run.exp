@@ -5,7 +5,7 @@ set timeout -1
 set loginUser "pi"
 set loginPassword "raspberry"
 
-spawn qemu-system-aarch64 -machine "raspi3b" -cpu arm1176 -m 1G -drive "format=raw,file=raspios.img" -dtb "./tests/dtb/bcm2710-rpi-3-b.dtb" -kernel "./tests/kernel/kernel8.img" -append "loglevel=0 quiet console=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 fsck.repair=yes rootwait init=/bin/bash" -nographic -serial mon:stdio
+spawn qemu-system-aarch64 -machine "raspi3b" -cpu arm1176 -m 1G -drive "format=raw,file=raspios.img" -dtb "./custom.dtb" -kernel "./tests/kernel/kernel8.img" -append "loglevel=0 quiet console=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 fsck.repair=yes rootwait init=/bin/bash" -nographic -serial mon:stdio
 
 # Setup user
 expect "root@(none):/# "
@@ -32,7 +32,7 @@ expect {
     exp_continue
   }
   "pi@raspberrypi:~$ " {
-    send "sudo /opt/zram/install.bash\r"
+    send "sudo date -s \"DATESED\"\r"
   }
   "Login incorrect" {
     exit 1
@@ -40,6 +40,8 @@ expect {
 }
 
 # Run tests
+expect "pi@raspberrypi:~$ "
+send "sudo /opt/zram/install.bash\r"
 expect "pi@raspberrypi:~$ "
 send "/opt/zram/tests/test-zram-devices.bash\r"
 expect {

@@ -14,9 +14,9 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event_name == 'create' && github.event.ref_type == 'tag' }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v4.4.0
+        uses: crazy-max/ghaction-import-gpg@v6.1.0
         with:
           gpg_private_key: "${{ secrets.GPG_PRIVATE_KEY }}"
           passphrase: "${{ secrets.GPG_PASSPHRASE }}"
@@ -30,12 +30,10 @@ jobs:
           gpg --verify zram-config-${tag}.tar.lz.asc zram-config-${tag}.tar.lz
           unset tag
         shell: bash
-      - uses: "marvinpinto/action-automatic-releases@v1.2.1"
+      - uses: "softprops/action-gh-release@v2"
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          title: "${{ github.ref_name }}"
-          automatic_release_tag: "${{ github.ref_name }}"
-          prerelease: false
+          generate_release_notes: true
+          make_latest: true
           files: |
             zram-config-*.tar.lz
             zram-config-*.tar.lz.asc
