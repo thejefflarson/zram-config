@@ -5,12 +5,14 @@ on:
   push:
     paths:
       - 'zram-config'
+      - 'ztab'
       - '**.bash'
       - 'tests/**'
       - '.github/workflows/test-action.yml'
   pull_request:
     paths:
       - 'zram-config'
+      - 'ztab'
       - '**.bash'
       - 'tests/**'
       - '.github/workflows/test-action.yml'
@@ -27,7 +29,6 @@ jobs:
        - name: Setup environment
          id: setup
          run: |
-           sudo -E bash -c set
            sudo apt-get update
            sudo apt-get install --yes expect systemd-container qemu-user-static qemu-utils qemu-system-arm libfdt-dev binfmt-support
            echo "imagexz=$(basename "$(curl "https://downloads.raspberrypi.org/raspios_lite_armhf_latest" -s -L -I  -o /dev/null -w '%{url_effective}')")" >> $GITHUB_OUTPUT
@@ -52,5 +53,5 @@ jobs:
          if: always()
          uses: actions/upload-artifact@v4
          with:
-           name: logs.tar
-           path: logs.tar
+           name: logs.tar.gz
+           path: logs.tar.gz

@@ -1,22 +1,20 @@
 name: Release
 
 on:
-  workflow_run:
-    workflows: [Test]
-    types:
-      - completed
-    branches:
-      - main
+  push:
+    tags:
+      - "v*.*.*"
 
 jobs:
   release:
     runs-on: "ubuntu-latest"
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event_name == 'create' && github.event.ref_type == 'tag' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: 'true'
       - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v6.1.0
+        uses: crazy-max/ghaction-import-gpg@v6.3.0
         with:
           gpg_private_key: "${{ secrets.GPG_PRIVATE_KEY }}"
           passphrase: "${{ secrets.GPG_PASSPHRASE }}"
@@ -24,13 +22,15 @@ jobs:
         run: |
           export tag="${{ github.ref_name }}"
           sudo apt-get install lzip
-          git archive --format=tar --prefix=zram-config-${tag}/ ${tag} -o zram-config-${tag}.tar
-          lzip -9 --keep --verbose --verbose zram-config-${tag}.tar
+          git ls-files --recurse-submodules | tar -cf zram-config-${tag}.tar --xform s:^:zram-config-${tag}/: --verbatim-files-from -T-
+          lzip --best --keep --verbose --verbose zram-config-${tag}.tar
           gpg --detach-sign --armor zram-config-${tag}.tar.lz
           gpg --verify zram-config-${tag}.tar.lz.asc zram-config-${tag}.tar.lz
           unset tag
         shell: bash
       - uses: "softprops/action-gh-release@v2"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           generate_release_notes: true
           make_latest: true

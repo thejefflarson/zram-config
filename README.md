@@ -21,29 +21,13 @@ Experimental Alpine support has also been added, other distributions may work bu
 
 ## A Brief Usage Guide
 
-### Table of Contents
-
-1.  [Install](#install)
-    -   [Manually start or stop](#manually-start-or-stop)
-    -   [Sync files to disk](#sync-files-to-disk)
-2.  [Update](#update)
-3.  [Uninstall](#uninstall)
-4.  [Configure](#customize)
-    -   [Example configuration](#example-configuration)
-5.  [Is it working?](#is-it-working)
-6.  [Known issues](#known-issues)
-    -   [Conflicts with services](#conflicts-with-services)
-    -   [Swapiness on older Linux kernel versions](#swapiness-on-older-linux-kernel-versions)
-    -   [Raspberry Pi 4 8GB compatibility](#raspberry-pi-4-8gb-compatibility)
-    -   [Filesystem compatibility](#filesystem-compatibility)
-7.  [Performance](#performance)
-8.  [Reference](#reference)
-
 ### Install
 
+The following assumes that you have the [`gh`](https://cli.github.com) cli tool installed and setup on your system.
+
 ``` shell
-sudo apt-get install git
-git clone --recurse-submodules https://github.com/ecdye/zram-config
+gh release download --repo ecdye/zram-config --pattern '*.tar.lz'
+mkdir -p zram-config && tar -xf zram-config*.tar.lz --strip-components=1 --directory=zram-config
 sudo ./zram-config/install.bash
 ```
 
@@ -106,10 +90,7 @@ Don't make it much higher than the compression algorithm (and the additional zra
 `swappiness` 150 because the improved performance of zram allows more usage without any adverse affects from the default of 60.
 It can be raised up to 200 which will improve performance in high memory pressure situations.
 
-`target_dir` is the directory you wish to hold in zram, and the original will be moved to a bind mount `bind_dir` and is synchronized on start, stop, and write commands.
-
-`bind_dir` is the directory where the original directory will be mounted for sync purposes.
-Usually in `/opt` or `/var`, name optional.
+`target_dir` is the directory you wish to hold in zram, and the original will be moved to a bind mount and is synchronized on start, stop, and write commands.
 
 `oldlog_dir` will enable log-rotation to an off device directory while retaining only live logs in zram.
 Usually in `/opt` or `/var`, name optional.
@@ -124,11 +105,11 @@ Once finished, start zram using `sudo systemctl start zram-config.service` or `s
 # swap	alg		mem_limit	disk_size	swap_priority	page-cluster	swappiness
 swap	lzo-rle		250M		750M		75		0		150
 
-# dir	alg		mem_limit	disk_size	target_dir		bind_dir
-#dir	lzo-rle		50M		150M		/home/pi		/opt/zram/pi.bind
+# dir	alg		mem_limit	disk_size	target_dir
+#dir	lzo-rle		50M		150M		/home/pi
 
-# log	alg		mem_limit	disk_size	target_dir		bind_dir		oldlog_dir
-log	lzo-rle		50M		150M		/var/log		/opt/zram/log.bind	/opt/zram/oldlog
+# log	alg		mem_limit	disk_size	target_dir	oldlog_dir
+log	lzo-rle		50M		150M		/var/log	/opt/zram/oldlog
 ```
 
 ### Is it working?
@@ -200,6 +181,22 @@ By default zram-config should support most regular filesystems, as long as the t
 In some cases, with niche filesystems some manual editing of the code may be required to enable support.
 
 Pull requests adding support for filesystems that don't work automatically are welcome.
+
+#### Compatibility issues in virtual machines
+
+When running zram-config in a virtual machine (VM), you may encounter compatibility issues due to the differences in how VMs handle memory and storage compared to physical hardware.
+Performance may vary, and certain features might not work as expected.
+It is also common for VMs to not have implemented emulation in their kernel for zram.
+If you experience issues, it may be better to not use zram-config in your VM environment.
+It is recommended to thoroughly test zram-config in your specific VM setup to ensure it meets your needs.
+
+#### Removal of `bind_dir` in `ztab`
+
+Older versions of zram-config included the option to manually configure a `bind_dir` in the `ztab`.
+This functionality was removed in favor of automatically creating a bind mount as it is less confusing and more consistent with the rest of the code.
+
+Checks are in place to automatically convert `ztab` to this new format.
+If errors occur, you may need to manually edit `ztab` to fix any issues.
 
 ### Performance
 
