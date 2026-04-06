@@ -23,7 +23,7 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     steps:
        - name: Checkout repository
-         uses: actions/checkout@v4
+         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
          with:
           submodules: recursive
        - name: Setup environment
@@ -34,7 +34,7 @@ jobs:
            echo "imagexz=$(basename "$(curl "https://downloads.raspberrypi.org/raspios_lite_armhf_latest" -s -L -I  -o /dev/null -w '%{url_effective}')")" >> $GITHUB_OUTPUT
            echo "image=$(echo "$(basename "$(curl "https://downloads.raspberrypi.org/raspios_lite_armhf_latest" -s -L -I  -o /dev/null -w '%{url_effective}')")" | sed -e 's/.xz//')" >> $GITHUB_OUTPUT
        - name: Cache Raspberry Pi OS 32bit image
-         uses: actions/cache@v4
+         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
          with:
            path: ${{ steps.setup.outputs.image }}
            key: ${{ steps.setup.outputs.image }}
@@ -51,7 +51,7 @@ jobs:
          run: sudo ./tests/image.bash "copy-logs" "raspios.img"
        - name: Upload logs
          if: always()
-         uses: actions/upload-artifact@v4
+         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
          with:
            name: logs.tar.gz
            path: logs.tar.gz
